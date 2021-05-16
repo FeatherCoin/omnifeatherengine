@@ -239,7 +239,7 @@ def updateTxStats():
     ROWS=dbSelect("select blocknumber,blocktime from blocks order by blocknumber desc limit 1")
     curblock=ROWS[0][0]
     btime=ROWS[0][1]
-    ROWS=dbSelect("select coalesce(max(blocknumber),252316) from txstats")
+    ROWS=dbSelect("select coalesce(max(blocknumber),3457507) from txstats")
     lastblock=ROWS[0][0]
     nextblock=lastblock+1
     printdebug(("TxStats: lastblock",lastblock,", curblock:",str(curblock)),0)
@@ -260,6 +260,7 @@ def updateTxStatsBlock(blocknumber):
     except:
       return False
     try:
+#      printdebug("1", 4)
       ROWS=dbSelect("select blocknumber,blocktime from blocks where blocknumber=%s order by blocknumber desc limit 1",[_block])
       curblock=ROWS[0][0]
       btime=ROWS[0][1]
@@ -273,14 +274,16 @@ def updateTxStatsBlock(blocknumber):
                       "where atx.txdbserialnum=tx.txdbserialnum and atx.propertyid=sp.propertyid and sp.protocol='Omni' and "
                       "tx.txblocknumber=%s and (atx.addressrole!='buyer' and atx.addressrole!='recipient') group by atx.propertyid, sp.propertydata->>'divisible'",[curblock])
       try:
+#        printdebug("2", 4)
         VROWS=dbSelect("select sum(cast(value->>'total_usd' as numeric)) from txstats where blocktime >= %s - '1 day'::INTERVAL and blocktime <= %s",(btime,btime))
         tval_day=int(VROWS[0][0])
       except:
         tval_day=0
       valuelist={}
       total=0
-      rbtcusd=dbSelect("select rate1for2 from exchangerates where protocol1='Fiat' and protocol2='Bitcoin' and propertyid1=0 and propertyid2=0 order by asof desc limit 1")
+      rbtcusd=dbSelect("select rate1for2 from exchangerates where protocol1='Fiat' and protocol2='Feathercoin' and propertyid1=0 and propertyid2=0 order by asof desc limit 1")
       try:
+#        printdebug("3", 4)
         btcusd=decimal.Decimal(rbtcusd[0][0])
       except:
         btcusd=decimal.Decimal(0)
@@ -292,8 +295,9 @@ def updateTxStatsBlock(blocknumber):
         invalid=t[4]
         if divisible in ['true','True',True]:
           volume=decimal.Decimal(volume)/decimal.Decimal(1e8)
-        rawrate=dbSelect("select rate1for2 from exchangerates where protocol1='Bitcoin' and protocol2='Omni' and propertyid1=0 and propertyid2=%s order by asof desc limit 1",[pid])
+        rawrate=dbSelect("select rate1for2 from exchangerates where protocol1='Feathercoin' and protocol2='Omni' and propertyid1=0 and propertyid2=%s order by asof desc limit 1",[pid])
         try:
+#          printdebug("4", 4)
           rate=decimal.Decimal(rawrate[0][0])
         except:
           rate=decimal.Decimal(0)
@@ -305,6 +309,7 @@ def updateTxStatsBlock(blocknumber):
         total+=value
         valuelist[pid]={'rate_usd':str(prate),'volume':str(volume),'value_usd_rounded':value, 'tx_count': count , 'invalid': invalid}
       fvalue={'total_usd':total, 'details':valuelist, 'value_24hr':tval_day}
+#      printdebug("5", 4)
       dbExecute("insert into txstats (blocknumber,blocktime,txcount,blockcount,value) values(%s,%s,%s,%s,%s)",
                 (curblock, btime, txs, btxs, json.dumps(fvalue)))
       return True
@@ -778,7 +783,7 @@ def updatedex(rawtx, TxDBSerialNum, Protocol):
       totalselling=amountavailable
 
       #convert all btc stuff, need additional logic for metadex
-      amountdesired=int(decimal.Decimal(str(rawtx['result']['bitcoindesired']))*decimal.Decimal(1e8))
+      amountdesired=int(decimal.Decimal(str(rawtx['result']['feathercoindesired']))*decimal.Decimal(1e8))
       minimumfee=int(decimal.Decimal(str(rawtx['result']['feerequired']))*decimal.Decimal(1e8))
 
       #rawtx does't have ppc, do the calculation to store
@@ -1031,7 +1036,7 @@ def resetdextable_MP():
         totalselling=amountaccepted
 
         #convert all btc stuff, need additional logic for metadex
-        amountdesired=int(decimal.Decimal(str(sale['bitcoindesired']))*decimal.Decimal(1e8))
+        amountdesired=int(decimal.Decimal(str(sale['feathercoindesired']))*decimal.Decimal(1e8))
         minimumfee=int(decimal.Decimal(str(sale['minimumfee']))*decimal.Decimal(1e8))
         unitprice=int(decimal.Decimal(str(sale['unitprice']))*decimal.Decimal(1e8))
 
@@ -1403,6 +1408,7 @@ def updateBalance(Address, Protocol, PropertyID, Ecosystem, BalanceAvailable, Ba
 
         dbExecute("UPDATE AddressBalances set BalanceAvailable=%s, BalanceReserved=%s, BalanceAccepted=%s, BalanceFrozen=%s, LastTxDBSerialNum=%s where address=%s and PropertyID=%s and Protocol=%s",
                   (BalanceAvailable, BalanceReserved, BalanceAccepted, BalanceFrozen, LastTxDBSerialNum, Address, PropertyID, Protocol) )
+
       #return {'BalanceAvailable':BalanceAvailable, 'BalanceReserved':BalanceReserved, 'BalanceAccepted':BalanceAccepted, 'BalanceFrozen':BalanceFrozen}
 
 def expireCrowdsales(BlockTime, Protocol):
@@ -1445,10 +1451,10 @@ def updateProperty(PropertyID, Protocol, LastTxDBSerialNum=None):
       reorg = False
 
     if PropertyID == 0:
-      rawprop = {"name":"BTC", "blocktime":1231006505, "data":"The Times 03/Jan/2009 Chancellor on brink of second bailout for banks", "issuer":"Satoshi Nakamoto", "url":"http://www.bitcoin.org", "propertyid":0 ,"divisible": True}
+      rawprop = {"name":"FTC", "blocktime":1317972665, "data":"NY Times 05/Oct/2011 Steve Jobs, Apple's Visionary, Dies at 56", "issuer":"Peter Bushnell", "url":"http://feathercoin.com", "propertyid":0, "divisible": True}
       Issuer = rawprop['issuer']
       try:
-        r = requests.get('https://blockchain.info/q/totalbc')
+        r = requests.get('https://chainz.cryptoid.info/ftc/api.dws?q=totalbc')
         amt=int(r.text)
         rawprop['totaltokens'] = str(int(amt/1e8))+".00000000"
       except:
@@ -1462,12 +1468,14 @@ def updateProperty(PropertyID, Protocol, LastTxDBSerialNum=None):
       Ecosystem = getEcosystem(PropertyID)
       Issuer = rawprop['issuer']
 
-      if PropertyID in [1,2]:
-        rawprop['blocktime']=1377994675
+      if PropertyID in [1,2,3]:
+        rawprop['blocktime']=1607663639
         if PropertyID == 1:
           rawprop['name']=u'Omni Token'
         elif PropertyID == 2:
           rawprop['name']=u'Test Omni Token'
+        elif PropertyID == 3:
+          rawprop['name']=u'Feather Token'
 
       #if TxType == 51 or TxType == 53:
       try:
@@ -1656,7 +1664,7 @@ def insertTxAddr(rawtx, Protocol, TxDBSerialNum, Block):
 
     TxHash = rawtx['result']['txid']
 
-    if Protocol == "Bitcoin":
+    if Protocol == "Feathercoin":
       PropertyID=0
       Ecosystem=None
       #process all outputs
@@ -2366,7 +2374,7 @@ def insertTx(rawtx, Protocol, blockheight, seq, TxDBSerialNum):
     TxBlockNumber = blockheight
     #TxDBSerialNum = dbserialnum
 
-    if Protocol == "Bitcoin":
+    if Protocol == "Feathercoin":
       #Bitcoin is only simple send, type 0
       TxType=0
       TxVersion=rawtx['result']['version']

@@ -53,9 +53,9 @@ else:
 
   #block with first MP transaction
   if config.TESTNET:
-    firstMPtxBlock=263137
+    firstMPtxBlock=6099
   else:
-    firstMPtxBlock=252317
+    firstMPtxBlock=3457508
 
   #get last known block processed from db
   currentBlock=dbSelect("select max(blocknumber) from blocks", None)[0][0]
@@ -102,8 +102,8 @@ else:
     updateRan=True
 
   #get highest TxDBSerialNum (number of rows in the Transactions table)
-  #22111443 btc tx's before block 252317
-  TxDBSerialNum=dbSelect('select coalesce(max(txdbserialnum), 22111443) from transactions')[0][0]+1
+  #5799545 ftc tx's before block 3457508
+  TxDBSerialNum=dbSelect('select coalesce(max(txdbserialnum), 5799545) from transactions')[0][0]+1
 
   #main loop, process new blocks
   while currentBlock <= endBlock:
@@ -131,11 +131,11 @@ else:
         lastStatusUpdateTime=statusUpdateTime
 
       #Process Bitcoin Transacations
-      Protocol="Bitcoin"
+      Protocol="Feathercoin"
 
       #Find number of tx's in block
       txcount=len(block_data['result']['tx'])
-      printdebug((txcount,"BTC tx"), 1)
+      printdebug((txcount,"FTC tx"), 1)
 
       #Write the blocks table row
       insertBlock(block_data, Protocol, height, txcount)
@@ -191,17 +191,11 @@ else:
       expireAccepts(height)
       #check active crowdsales and update json if the endtime has passed (based on block time)
       expireCrowdsales(block_data['result']['time'], Protocol)
-      #exodus address generates dev msc, sync our balance to match the generated balanace
-      if config.TESTNET:
-        syncAddress('mpexoDuSkGGqvqrkrjiFng38QPkJQVFyqv', Protocol)
-        #upadate temp orderbook
-        #updateorderblob()
-      else:
-        syncAddress('1EXoDusjGwvnjZUyKkxZ4UHEf77z6A5S4P', Protocol)
 
       #Also make sure we update the json data in SmartProperties table used by exchange view
       updateProperty(1,"Omni")
       updateProperty(2,"Omni")
+      updateProperty(3,"Omni")
       #make sure we store the last serialnumber used
       dbExecute("select setval('transactions_txdbserialnum_seq', %s)", [TxDBSerialNum-1])
       #write db changes for entire block
@@ -232,7 +226,7 @@ else:
   #/while loop.  Finished processing all current blocks.
   try:
     #Also make sure we update the json data in SmartProperties
-    updateProperty(0,"Bitcoin")
+    updateProperty(0,"Feathercoin")
     dbCommit()
   except:
     pass
