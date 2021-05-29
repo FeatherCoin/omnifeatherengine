@@ -1449,7 +1449,6 @@ def updateProperty(PropertyID, Protocol, LastTxDBSerialNum=None):
       PropertyID = -PropertyID
     else:
       reorg = False
-
     if PropertyID == 0:
       rawprop = {"name":"FTC", "blocktime":1317972665, "data":"NY Times 05/Oct/2011 Steve Jobs, Apple's Visionary, Dies at 56", "issuer":"Peter Bushnell", "url":"http://feathercoin.com", "propertyid":0, "divisible": True}
       Issuer = rawprop['issuer']
@@ -1459,6 +1458,8 @@ def updateProperty(PropertyID, Protocol, LastTxDBSerialNum=None):
         rawprop['totaltokens'] = str(int(amt/1e8))+".00000000"
       except:
         pass
+    elif PropertyID == 3:
+        return
     else:
       PropertyDataJson=getproperty_MP(PropertyID)
       #rawtx=gettransaction_MP(PropertyDataJson['result']['creationtxid'])
