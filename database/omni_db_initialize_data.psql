@@ -18,12 +18,6 @@ insert into Protocols values (
 insert into smartproperties (Protocol, propertyid, issuer, createtxdbserialnum, lasttxdbserialnum, propertyname, propertytype, propertydata) values (
      'Feathercoin', 0, 'Peter Bushnell', -1, -1, 'FTC', 2, '{"name":"FTC", "blocktime":1317972665, "data":"NY Times 05/Oct/2011 Steve Jobs, Apple’s Visionary, Dies at 56", "issuer":"Peter Bushnell", "url":"http://feathercoin.com", "propertyid":0 ,"divisible": true}');
 
-insert into smartproperties (Protocol, propertyid, issuer, ecosystem, createtxdbserialnum, lasttxdbserialnum, propertyname, propertytype, propertycategory, propertysubcategory, propertydata) values (
-     'Omni', 3, '6kkYNUiQFDbYoj7Pr8wc9oqJ1TjDNtxy77', 'Production', 1, 1, 'Feather', 1, '', '', '{"url": "http://feathercoin.com", "data": "Feather tokens serve as the binding between Feathercoin, smart properties and contracts created on OmniFeather.", "name": "Feather", "issuer": "6kkYNUiQFDbYoj7Pr8wc9oqJ1TjDNtxy77", "category": "", "divisible": true, "propertyid": 3, "subcategory": "", "totaltokens": "336000000.00000000", "creationtxid": "", "fixedissuance": true, "managedissuance": false, "non-fungibletoken": false}');
-
-/*Add balance to Feather issuer*/
-insert into addressbalances (address, protocol, propertyid, ecosystem, balanceavailable, balancereserved, balanceaccepted, balancefrozen, lasttxdbserialnum) values ('6kkYNUiQFDbYoj7Pr8wc9oqJ1TjDNtxy77', 'Omni', 3, 'Production', 33600000000000000, 0, 0, 0, 1);
-
 /*Load the list of Fiat Currencies we track */
 
 insert into smartproperties (Protocol, propertyid, issuer, createtxdbserialnum, lasttxdbserialnum, propertyname) values (
