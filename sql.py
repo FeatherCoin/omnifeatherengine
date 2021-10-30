@@ -289,6 +289,8 @@ def updateTxStatsBlock(blocknumber):
         btcusd=decimal.Decimal(0)
       for t in txfsum:
         pid=t[0]
+        if t[1] is None:
+          continue
         volume=decimal.Decimal(t[1])
         divisible=t[2]
         count=t[3]
