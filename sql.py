@@ -397,9 +397,8 @@ def updateAddPending():
       recvamount=None
     else:
       propertyid = rawtx['propertyid'] if 'propertyid' in rawtx else rawtx['propertyidforsale']
-
       if 'amount' in rawtx:
-        if rawtx['divisible']:
+        if 'divisible' in rawtx and rawtx['divisible']:
           amount = int(decimal.Decimal(str(rawtx['amount']))*decimal.Decimal(1e8))
         else:
           amount = int(rawtx['amount'])
