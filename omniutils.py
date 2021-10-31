@@ -5,7 +5,7 @@ def getDivisible(rawtx):
   try:
     divisible=rawtx['result']['divisible']
   except KeyError:
-    if rawtx['result']['propertytype'] == 'indivisible':
+    if 'propertytype' not in rawtx['result'] or rawtx['result']['propertytype'] == 'indivisible':
       divisible=False
     else:
       divisible=True
@@ -67,6 +67,7 @@ def get_TxType(text_type):
              "Restricted Send": 2,
              "Send To Owners": 3,
              "Send All": 4,
+             "Unique Send": 5,
              "Savings": -1,
              "Savings COMPROMISED": -1,
              "Rate-Limiting": -1,

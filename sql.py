@@ -1771,7 +1771,7 @@ def insertTxAddr(rawtx, Protocol, TxDBSerialNum, Block):
 
 
 
-      if txtype == 0:
+      if txtype == 0 or txtype == 5:
         #Simple Send
         BalanceAvailableCreditDebit=value_neg
 
